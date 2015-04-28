@@ -13,6 +13,7 @@
 # Build results
 [Dd]ebug/
 [Rr]elease/
+packages/
 x64/
 
 # ReSharper is a .NET coding add-in
