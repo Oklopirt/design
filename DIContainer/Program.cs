@@ -1,6 +1,8 @@
 ﻿using System;
+using System.IO;
 using System.Linq;
 using DIContainer.Commands;
+using Ninject;
 
 namespace DIContainer
 {
@@ -8,6 +10,11 @@ namespace DIContainer
     {
         private readonly CommandLineArgs arguments;
         private readonly ICommand[] commands;
+
+        public ICommand[] GetCommand()
+        {
+            return commands;
+        }
 
         public Program(CommandLineArgs arguments, params ICommand[] commands)
         {
@@ -18,23 +25,33 @@ namespace DIContainer
 
         static void Main(string[] args)
         {
-            var arguments = new CommandLineArgs(args);
-            var printTime = new PrintTimeCommand();
-            var timer = new TimerCommand(arguments);
-            var commands = new ICommand[] { printTime, timer };
-            new Program(arguments, commands).Run();
+            var container = new StandardKernel();
+
+            container.Bind<ICommand>().To<TimerCommand>();
+            container.Bind<ICommand>().To<PrintTimeCommand>();
+            container.Bind<ICommand>().To<HelpCommand>();
+
+            container.Bind<CommandLineArgs>()
+                .ToSelf().WithConstructorArgument(typeof (string[]), args);
+
+            var program = container.Get<Program>();
+
+            program.Run();
         }
 
         public void Run()
         {
+            TextWriter writer = TextWriter.Null;
             if (arguments.Command == null)
             {
-                Console.WriteLine("Please specify <command> as the first command line argument");
+                writer.WriteLine("Please specify <command> as the first command line argument");
                 return;
             }
-            var command = commands.FirstOrDefault(c => c.Name.Equals(arguments.Command, StringComparison.InvariantCultureIgnoreCase));
+            var command =
+                commands.FirstOrDefault(
+                    c => c.Name.Equals(arguments.Command, StringComparison.InvariantCultureIgnoreCase));
             if (command == null)
-                Console.WriteLine("Sorry. Unknown command {0}", arguments.Command);
+                writer.WriteLine("Sorry. Unknown command {0}", arguments.Command);
             else
                 command.Execute();
         }

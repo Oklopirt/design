@@ -63,8 +63,10 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="CommandLineArgs.cs" />
+    <Compile Include="Commands\HelpCommand.cs" />
     <Compile Include="ICommand.cs" />
     <Compile Include="Commands\PrintTimeCommand.cs" />
+    <Compile Include="IProgram.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Program_should.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

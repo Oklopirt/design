@@ -3,7 +3,7 @@ using System.Linq;
 
 namespace DIContainer
 {
-    public abstract class BaseCommand : ICommand
+    public abstract class BaseCommand : ICommand 
     {
         protected BaseCommand()
         {
@@ -19,5 +19,6 @@ namespace DIContainer
     {
         string Name { get; }
         void Execute();
+
     }
 }
