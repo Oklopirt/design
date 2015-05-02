@@ -26,17 +26,15 @@ namespace DIContainer
         static void Main(string[] args)
         {
             var container = new StandardKernel();
-
             container.Bind<ICommand>().To<TimerCommand>();
             container.Bind<ICommand>().To<PrintTimeCommand>();
             container.Bind<ICommand>().To<HelpCommand>();
+            container.Bind<TextWriter>().ToConstant(Console.Out);
+            container.Bind<CommandLineArgs>().ToConstant(new CommandLineArgs(args));
 
-            container.Bind<CommandLineArgs>()
-                .ToSelf().WithConstructorArgument(typeof (string[]), args);
-
-            var program = container.Get<Program>();
-
-            program.Run();
+            var arguments = container.Get<CommandLineArgs>();
+            var commands = container.GetAll<ICommand>().ToArray();
+            container.Get<Program>().Run();
         }
 
         public void Run()

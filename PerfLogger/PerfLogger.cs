@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
@@ -9,23 +8,26 @@ using System.Threading.Tasks;
 
 namespace PerfLogger
 {
-
-    internal class PerfLogger : IDisposable
+    class PerfLogger : IDisposable
     {
+        private Stopwatch sw;
+        private Action<int> resultManager;
 
-        public static  Stopwatch watch = new Stopwatch();
-        public static  Action<int> act;
-        public void Dispose()
+        private PerfLogger(Action<int> resultManager)
         {
-
+            this.resultManager = resultManager;
+            sw = new Stopwatch();
+            sw.Start();
         }
 
-        public static IDisposable Measure(Action<int>  action)
+        public static IDisposable Measure(Action<int> timeManager )
         {
-            
-            watch.Start();
-            act = action;
+            return new PerfLogger(timeManager);
+        }
 
+        public void Dispose()
+        {
+            resultManager(sw.Elapsed.Milliseconds);
         }
     }
 }

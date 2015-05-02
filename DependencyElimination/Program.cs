@@ -6,49 +6,81 @@ using System.Linq;
 using System.Net.Http;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using Microsoft.SqlServer.Server;
 
 namespace DependencyElimination
 {
-	internal class Program
+    internal class Page
+    {
+//        public string url { get; private set; }
+//        public int count { get; private set; }
+//
+        public string log { get; private set; }
+        public IEnumerable<string > URLs { get; private set; }
+        public Page(string url)
+        {
+            log = url + "\n";
+            var response = GetPageFromUrl(url);
+            if (response.IsSuccessStatusCode)
+            {
+                var URLs = ExtractLinksFromHtml(GetStringResponse(response));
+                log += URLs.Count();
+                this.URLs = URLs;
+            }
+            else
+            {
+                log += String.Format(@"Error: {0} {1}", response.StatusCode, response.ReasonPhrase);
+            }
+
+        }
+
+        private HttpResponseMessage GetPageFromUrl(string link)
+        {
+            using (var http = new HttpClient())
+            {
+                return http.GetAsync(link).Result;
+            }
+        }
+
+        private string GetStringResponse(HttpResponseMessage response)
+        {
+            return response.Content.ReadAsStringAsync().Result;
+        }
+
+        private IEnumerable<string> ExtractLinksFromHtml(string page)
+        {
+            return Regex.Matches(page, @"\Whref=[""'](.*?)[""'\s>]")
+                .Cast<Match>()
+                .Select(match => match.Groups[1].Value);
+        }
+    }
+
+    internal class Program
 	{
-		private static void Main(string[] args)
+
+	    private static void Main(string[] args)
 		{
 			var sw = Stopwatch.StartNew();
-			using (var http = new HttpClient())
+            int totalLinks = 0;
+			    
+            foreach (var url in GetURLs("http://habrahabr.ru/top/page", 1, 6))
 			{
-				using (var output = new StreamWriter("links.txt", false))
-					for (int page = 1; page < 6; page++)
-					{
-						var url = "http://habrahabr.ru/top/page" + page;
-						Console.WriteLine(url);
-						var habrResponse = http.GetAsync(url).Result;
-						if (habrResponse.IsSuccessStatusCode)
-							ParseResponse(habrResponse, output).Wait();
-						else
-						{
-							Console.WriteLine("Error: " + habrResponse.StatusCode + " " + habrResponse.ReasonPhrase);
-						}
-					}
+			    var page = new Page(url);
+                Console.WriteLine(page.log);
+                File.AppendAllLines("links.txt", page.URLs);
 			}
-			Console.WriteLine("Total links found: {0}", totalLinks);
+			
+			Console.WriteLine("Total URLs found: {0}", totalLinks);
 			Console.WriteLine("Finished");
 			Console.WriteLine(sw.Elapsed);
 		}
 
-		private static int totalLinks = 0;
-
-		private static async Task ParseResponse(HttpResponseMessage response, StreamWriter output)
-		{
-			string content = await response.Content.ReadAsStringAsync();
-			var matches = Regex.Matches(content, @"\Whref=[""'](.*?)[""'\s>]").Cast<Match>();
-			var count = 0;
-			foreach (var match in matches)
-			{
-				output.WriteLine(match.Groups[1].Value);
-				totalLinks++;
-				count++;
-			}
-			Console.WriteLine("found {0} links", count);
-		}
+	    private static IEnumerable<string> GetURLs(string url, int startPage, int endPage)
+	    {
+            for (int page = startPage; page <= endPage; page++)
+            {
+                yield return url + page;
+            }
+	    }
 	}
 }

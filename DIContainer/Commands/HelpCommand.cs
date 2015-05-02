@@ -1,26 +1,24 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.IO;
 
 namespace DIContainer.Commands
 {
     class HelpCommand : BaseCommand
     {
         private readonly Lazy<ICommand[]> commands;
-        
+        private readonly TextWriter tw;
 
-        public HelpCommand (Lazy<ICommand[]> commands)
+        public HelpCommand(Lazy<ICommand[]> commands, TextWriter tw)
         {
             this.commands = commands;
+            this.tw = tw;
         }
 
-        public override void Execute () 
+        public override void Execute()
         {
-            foreach (var com in commands.Value)
+            foreach (var command in commands.Value)
             {
-                Console.WriteLine(com.Name);
+                tw.WriteLine(command.Name);
             }
         }
     }

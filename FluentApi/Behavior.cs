@@ -2,56 +2,76 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace FluentTask
 {
-
-    internal abstract class Action
+    public class Behavior
     {
-        public abstract void Act();
-    }
+        private Queue<Action> actions;
 
-    internal class Say : Action
-    {
-    }
-
-    class Behavior
-    {
-        //List<string> actions = new List<string>();
-        public readonly List<Action> actions; 
-        public Behavior(IEnumerable<Action> action)
+        public Behavior()
         {
-            this.actions = action.ToList();
-        }
-
-
-        public Behavior Say(string message)
-        {
-            return new Behavior(
-                actions.Concat(
-                new Action[]{() => Console.WriteLine(message)}));
-            throw new NotImplementedException();
-
-        }
-
-        public void UntilKeyPressed()
-        {
-            throw new NotImplementedException();
-        }
-
-        public void Delay(TimeSpan time)
-        {
-
+            actions = new Queue<Action>();
         }
 
         public void Execute()
         {
             foreach (var action in actions)
             {
-
+                action.Invoke();
             }
         }
 
+        public Behavior Say(string message)
+        {
+            actions.Enqueue(() =>
+            {
+                Console.WriteLine(message);
+            });
+            return this;
+        }
+
+        public Behavior UntilKeyPressed(Func<Behavior, Behavior> inner)
+        {
+            actions.Enqueue(() =>
+            {
+                while (!Console.KeyAvailable)
+                {
+                    var behaviour = new Behavior();
+                    inner.Invoke(behaviour);
+                    behaviour.Execute();
+                    Thread.Sleep(TimeSpan.FromSeconds(1));
+                }
+                Console.ReadKey(true);
+            });
+            return this;
+        }
+
+        public Behavior Jump(JumpHeight height)
+        {
+            actions.Enqueue(() =>
+            {
+                if (height.Equals(JumpHeight.Low))
+                {
+                    Console.WriteLine("Прыгнул низко!");
+                }
+                else
+                {
+                    Console.WriteLine("Прыгнул высоко!");
+                }
+            });
+            return this;
+        }
+
+        public Behavior Delay(TimeSpan time)
+        {
+            actions.Enqueue(() =>
+            {
+                Thread.Sleep(time);
+            });
+            return this;
+        }
     }
 }
