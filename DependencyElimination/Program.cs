@@ -12,9 +12,6 @@ namespace DependencyElimination
 {
     internal class Page
     {
-//        public string url { get; private set; }
-//        public int count { get; private set; }
-//
         public string log { get; private set; }
         public IEnumerable<string > URLs { get; private set; }
         public Page(string url)
@@ -61,13 +58,13 @@ namespace DependencyElimination
 	    private static void Main(string[] args)
 		{
 			var sw = Stopwatch.StartNew();
-            int totalLinks = 0;
+            var totalLinks = 0;
 			    
             foreach (var url in GetURLs("http://habrahabr.ru/top/page", 1, 6))
 			{
 			    var page = new Page(url);
                 Console.WriteLine(page.log);
-                File.AppendAllLines("links.txt", page.URLs);
+                if (page.URLs != null) File.AppendAllLines("links.txt", page.URLs);
 			}
 			
 			Console.WriteLine("Total URLs found: {0}", totalLinks);

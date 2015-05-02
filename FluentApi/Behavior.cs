@@ -9,11 +9,11 @@ namespace FluentTask
 {
     public class Behavior
     {
-        private Queue<Action> actions;
+        private List<Action> actions;
 
         public Behavior()
         {
-            actions = new Queue<Action>();
+            actions = new List<Action>();
         }
 
         public void Execute()
@@ -26,7 +26,7 @@ namespace FluentTask
 
         public Behavior Say(string message)
         {
-            actions.Enqueue(() =>
+            actions.Add(() =>
             {
                 Console.WriteLine(message);
             });
@@ -35,7 +35,7 @@ namespace FluentTask
 
         public Behavior UntilKeyPressed(Func<Behavior, Behavior> inner)
         {
-            actions.Enqueue(() =>
+            actions.Add(() =>
             {
                 while (!Console.KeyAvailable)
                 {
@@ -51,7 +51,7 @@ namespace FluentTask
 
         public Behavior Jump(JumpHeight height)
         {
-            actions.Enqueue(() =>
+            actions.Add(() =>
             {
                 if (height.Equals(JumpHeight.Low))
                 {
@@ -67,7 +67,7 @@ namespace FluentTask
 
         public Behavior Delay(TimeSpan time)
         {
-            actions.Enqueue(() =>
+            actions.Add(() =>
             {
                 Thread.Sleep(time);
             });
